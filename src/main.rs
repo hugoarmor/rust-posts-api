@@ -7,8 +7,12 @@ use dotenvy::dotenv;
 use std::env;
 
 pub mod context;
-pub mod models;
-pub mod schema;
+pub mod db {
+    pub mod schema;
+    pub mod models {
+        pub mod post;
+    }
+}
 pub mod resources {
     pub mod post {
         pub mod routes;

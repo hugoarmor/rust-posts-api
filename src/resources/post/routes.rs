@@ -2,8 +2,8 @@ use diesel::prelude::*;
 use rocket::serde::json::Json;
 
 use crate::context::AppState;
-use crate::models::*;
-use crate::schema;
+use crate::db::models::post::*;
+use crate::db::schema;
 
 #[get("/posts")]
 pub fn get_posts(app: &AppState) -> Json<Vec<Post>> {
@@ -37,7 +37,7 @@ pub fn get_post(app: &AppState, post_id: i32) -> Json<Post> {
 
 #[post("/posts", data = "<new_post>")]
 pub fn create_post(app: &AppState, new_post: Json<NewPost>) -> Json<Post> {
-    use crate::schema::posts;
+    use schema::posts;
 
     let result = app.with_db(|connection| {
         diesel::insert_into(posts::table)
@@ -52,7 +52,7 @@ pub fn create_post(app: &AppState, new_post: Json<NewPost>) -> Json<Post> {
 
 #[put("/posts/<post_id>", data = "<updated_post>")]
 pub fn update_post(app: &AppState, post_id: i32, updated_post: Json<NewPost>) -> Json<Post> {
-    use crate::schema::posts::dsl::*;
+    use schema::posts::dsl::*;
 
     let result = app.with_db(|connection| {
         posts
@@ -73,7 +73,7 @@ pub fn update_post(app: &AppState, post_id: i32, updated_post: Json<NewPost>) ->
 
 #[delete("/posts/<post_id>")]
 pub fn delete_post(app: &AppState, post_id: i32) -> Json<Post> {
-    use crate::schema::posts::dsl::*;
+    use schema::posts::dsl::*;
 
     let result = app.with_db(|connection| {
         posts
