@@ -1,11 +1,12 @@
 use diesel::prelude::*;
+use rocket::serde::json::Json;
 
 use crate::context::AppState;
 use crate::models::*;
 use crate::schema;
 
 #[get("/posts")]
-pub fn get_posts(app: &AppState) -> String {
+pub fn get_posts(app: &AppState) -> Json<Vec<Post>> {
     use self::schema::posts::dsl::*;
 
     let connection = &mut *app.db.lock().unwrap();
@@ -15,11 +16,11 @@ pub fn get_posts(app: &AppState) -> String {
         .load(connection)
         .expect("Error loading posts");
 
-    serde_json::to_string(&results).unwrap()
+    Json::from(results)
 }
 
 #[get("/posts/<post_id>")]
-pub fn get_post(app: &AppState, post_id: i32) -> String {
+pub fn get_post(app: &AppState, post_id: i32) -> Json<Post> {
     use self::schema::posts::dsl::*;
 
     let connection = &mut *app.db.lock().unwrap();
@@ -29,11 +30,11 @@ pub fn get_post(app: &AppState, post_id: i32) -> String {
         .first::<Post>(connection)
         .expect("Error loading post");
 
-    serde_json::to_string(&result).unwrap()
+    Json::from(result)
 }
 
 #[post("/posts", data = "<new_post>")]
-pub fn create_post(app: &AppState, new_post: rocket::serde::json::Json<NewPost>) -> String {
+pub fn create_post(app: &AppState, new_post: Json<NewPost>) -> Json<Post> {
     use crate::schema::posts;
 
     let connection = &mut *app.db.lock().unwrap();
@@ -44,27 +45,20 @@ pub fn create_post(app: &AppState, new_post: rocket::serde::json::Json<NewPost>)
         .get_result(connection)
         .expect("Error saving new post");
 
-    serde_json::to_string(&result).unwrap()
+    Json::from(result)
 }
 
 #[put("/posts/<post_id>", data = "<updated_post>")]
-pub fn update_post(
-    app: &AppState,
-    post_id: i32,
-    updated_post: rocket::serde::json::Json<NewPost>,
-) -> String {
+pub fn update_post(app: &AppState, post_id: i32, updated_post: Json<NewPost>) -> Json<Post> {
     use crate::schema::posts::dsl::*;
 
     let connection = &mut *app.db.lock().unwrap();
 
-    let existing = posts
+    posts
         .filter(id.eq(post_id))
         .select(Post::as_select())
-        .first::<Post>(connection);
-
-    if existing.is_err() {
-        return format!("Post with id {} not found", post_id);
-    }
+        .first::<Post>(connection)
+        .expect(&format!("Post with id {} not found", post_id));
 
     let connection = &mut *app.db.lock().unwrap();
 
@@ -74,23 +68,20 @@ pub fn update_post(
         .get_result(connection)
         .expect("Error updating post");
 
-    serde_json::to_string(&result).unwrap()
+    Json::from(result)
 }
 
 #[delete("/posts/<post_id>")]
-pub fn delete_post(app: &AppState, post_id: i32) -> String {
+pub fn delete_post(app: &AppState, post_id: i32) -> Json<Post> {
     use crate::schema::posts::dsl::*;
 
     let connection = &mut *app.db.lock().unwrap();
 
-    let existing = posts
+    posts
         .filter(id.eq(post_id))
         .select(Post::as_select())
-        .first::<Post>(connection);
-
-    if existing.is_err() {
-        return format!("Post with id {} not found", post_id);
-    }
+        .first::<Post>(connection)
+        .expect(&format!("Post with id {} not found", post_id));
 
     let connection = &mut *app.db.lock().unwrap();
 
@@ -99,5 +90,5 @@ pub fn delete_post(app: &AppState, post_id: i32) -> String {
         .get_result(connection)
         .expect("Error deleting post");
 
-    serde_json::to_string(&result).unwrap()
+    Json::from(result)
 }
