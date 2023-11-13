@@ -9,12 +9,13 @@ use crate::schema;
 pub fn get_posts(app: &AppState) -> Json<Vec<Post>> {
     use self::schema::posts::dsl::*;
 
-    let connection = &mut *app.db.lock().unwrap();
-    let results = posts
-        .limit(5)
-        .select(Post::as_select())
-        .load(connection)
-        .expect("Error loading posts");
+    let results = app.with_db(|connection| {
+        posts
+            .limit(5)
+            .select(Post::as_select())
+            .load(connection)
+            .expect("Error loading posts")
+    });
 
     Json::from(results)
 }
@@ -23,12 +24,13 @@ pub fn get_posts(app: &AppState) -> Json<Vec<Post>> {
 pub fn get_post(app: &AppState, post_id: i32) -> Json<Post> {
     use self::schema::posts::dsl::*;
 
-    let connection = &mut *app.db.lock().unwrap();
-    let result = posts
-        .filter(id.eq(post_id))
-        .select(Post::as_select())
-        .first::<Post>(connection)
-        .expect("Error loading post");
+    let result = app.with_db(|connection| {
+        posts
+            .filter(id.eq(post_id))
+            .select(Post::as_select())
+            .first::<Post>(connection)
+            .expect("Error loading post")
+    });
 
     Json::from(result)
 }
@@ -37,13 +39,13 @@ pub fn get_post(app: &AppState, post_id: i32) -> Json<Post> {
 pub fn create_post(app: &AppState, new_post: Json<NewPost>) -> Json<Post> {
     use crate::schema::posts;
 
-    let connection = &mut *app.db.lock().unwrap();
-
-    let result = diesel::insert_into(posts::table)
-        .values(new_post.into_inner())
-        .returning(Post::as_returning())
-        .get_result(connection)
-        .expect("Error saving new post");
+    let result = app.with_db(|connection| {
+        diesel::insert_into(posts::table)
+            .values(new_post.into_inner())
+            .returning(Post::as_returning())
+            .get_result(connection)
+            .expect("Error saving new post")
+    });
 
     Json::from(result)
 }
@@ -52,21 +54,19 @@ pub fn create_post(app: &AppState, new_post: Json<NewPost>) -> Json<Post> {
 pub fn update_post(app: &AppState, post_id: i32, updated_post: Json<NewPost>) -> Json<Post> {
     use crate::schema::posts::dsl::*;
 
-    let connection = &mut *app.db.lock().unwrap();
+    let result = app.with_db(|connection| {
+        posts
+            .filter(id.eq(post_id))
+            .select(Post::as_select())
+            .first::<Post>(connection)
+            .expect(&format!("Post with id {} not found", post_id));
 
-    posts
-        .filter(id.eq(post_id))
-        .select(Post::as_select())
-        .first::<Post>(connection)
-        .expect(&format!("Post with id {} not found", post_id));
-
-    let connection = &mut *app.db.lock().unwrap();
-
-    let result = diesel::update(posts.filter(id.eq(post_id)))
-        .set(updated_post.into_inner())
-        .returning(Post::as_returning())
-        .get_result(connection)
-        .expect("Error updating post");
+        diesel::update(posts.filter(id.eq(post_id)))
+            .set(updated_post.into_inner())
+            .returning(Post::as_returning())
+            .get_result(connection)
+            .expect("Error updating post")
+    });
 
     Json::from(result)
 }
@@ -75,20 +75,18 @@ pub fn update_post(app: &AppState, post_id: i32, updated_post: Json<NewPost>) ->
 pub fn delete_post(app: &AppState, post_id: i32) -> Json<Post> {
     use crate::schema::posts::dsl::*;
 
-    let connection = &mut *app.db.lock().unwrap();
+    let result = app.with_db(|connection| {
+        posts
+            .filter(id.eq(post_id))
+            .select(Post::as_select())
+            .first::<Post>(connection)
+            .expect(&format!("Post with id {} not found", post_id));
 
-    posts
-        .filter(id.eq(post_id))
-        .select(Post::as_select())
-        .first::<Post>(connection)
-        .expect(&format!("Post with id {} not found", post_id));
-
-    let connection = &mut *app.db.lock().unwrap();
-
-    let result = diesel::delete(posts.filter(id.eq(post_id)))
-        .returning(Post::as_returning())
-        .get_result(connection)
-        .expect("Error deleting post");
+        diesel::delete(posts.filter(id.eq(post_id)))
+            .returning(Post::as_returning())
+            .get_result(connection)
+            .expect("Error deleting post")
+    });
 
     Json::from(result)
 }

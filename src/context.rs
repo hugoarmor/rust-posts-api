@@ -26,4 +26,12 @@ impl AppContext {
             db: Arc::new(Mutex::new(establish_connection())),
         }
     }
+
+    pub fn with_db<T, Callback: FnOnce(&mut PgConnection) -> T>(&self, callback: Callback) -> T {
+        let connection = &mut *match self.db.lock() {
+            Ok(connection) => connection,
+            Err(poisoned) => poisoned.into_inner(),
+        };
+        callback(connection)
+    }
 }
