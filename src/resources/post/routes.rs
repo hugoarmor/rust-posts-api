@@ -1,14 +1,14 @@
 use diesel::prelude::*;
 
-use crate::schema;
+use crate::context::AppState;
 use crate::models::*;
-use crate::establish_connection;
+use crate::schema;
 
 #[get("/posts")]
-pub fn get_posts() -> String {
+pub fn get_posts(app: &AppState) -> String {
     use self::schema::posts::dsl::*;
 
-    let connection = &mut establish_connection();
+    let connection = &mut *app.db.lock().unwrap();
     let results = posts
         .limit(5)
         .select(Post::as_select())
@@ -19,10 +19,10 @@ pub fn get_posts() -> String {
 }
 
 #[get("/posts/<post_id>")]
-pub fn get_post(post_id: i32) -> String {
+pub fn get_post(app: &AppState, post_id: i32) -> String {
     use self::schema::posts::dsl::*;
 
-    let connection = &mut establish_connection();
+    let connection = &mut *app.db.lock().unwrap();
     let result = posts
         .filter(id.eq(post_id))
         .select(Post::as_select())
@@ -33,10 +33,10 @@ pub fn get_post(post_id: i32) -> String {
 }
 
 #[post("/posts", data = "<new_post>")]
-pub fn create_post(new_post: rocket::serde::json::Json<NewPost>) -> String {
+pub fn create_post(app: &AppState, new_post: rocket::serde::json::Json<NewPost>) -> String {
     use crate::schema::posts;
 
-    let connection = &mut establish_connection();
+    let connection = &mut *app.db.lock().unwrap();
 
     let result = diesel::insert_into(posts::table)
         .values(new_post.into_inner())
@@ -48,19 +48,25 @@ pub fn create_post(new_post: rocket::serde::json::Json<NewPost>) -> String {
 }
 
 #[put("/posts/<post_id>", data = "<updated_post>")]
-pub fn update_post(post_id: i32, updated_post: rocket::serde::json::Json<NewPost>) -> String {
+pub fn update_post(
+    app: &AppState,
+    post_id: i32,
+    updated_post: rocket::serde::json::Json<NewPost>,
+) -> String {
     use crate::schema::posts::dsl::*;
+
+    let connection = &mut *app.db.lock().unwrap();
 
     let existing = posts
         .filter(id.eq(post_id))
         .select(Post::as_select())
-        .first::<Post>(&mut establish_connection());
+        .first::<Post>(connection);
 
     if existing.is_err() {
         return format!("Post with id {} not found", post_id);
     }
 
-    let connection = &mut establish_connection();
+    let connection = &mut *app.db.lock().unwrap();
 
     let result = diesel::update(posts.filter(id.eq(post_id)))
         .set(updated_post.into_inner())
@@ -72,19 +78,21 @@ pub fn update_post(post_id: i32, updated_post: rocket::serde::json::Json<NewPost
 }
 
 #[delete("/posts/<post_id>")]
-pub fn delete_post(post_id: i32) -> String {
+pub fn delete_post(app: &AppState, post_id: i32) -> String {
     use crate::schema::posts::dsl::*;
+
+    let connection = &mut *app.db.lock().unwrap();
 
     let existing = posts
         .filter(id.eq(post_id))
         .select(Post::as_select())
-        .first::<Post>(&mut establish_connection());
+        .first::<Post>(connection);
 
     if existing.is_err() {
         return format!("Post with id {} not found", post_id);
     }
 
-    let connection = &mut establish_connection();
+    let connection = &mut *app.db.lock().unwrap();
 
     let result = diesel::delete(posts.filter(id.eq(post_id)))
         .returning(Post::as_returning())
