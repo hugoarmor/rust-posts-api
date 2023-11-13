@@ -53,5 +53,5 @@ pub fn create_post(new_post: rocket::serde::json::Json<NewPost>) -> String {
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![index, get_posts])
+    rocket::build().mount("/", routes![index, get_posts, create_post])
 }
