@@ -14,7 +14,7 @@ pub struct Post {
     pub updated_at: NaiveDateTime,
 }
 
-#[derive(Insertable, Deserialize, Debug)]
+#[derive(Insertable, Deserialize, Debug, AsChangeset)]
 #[diesel(table_name = crate::schema::posts)]
 #[serde(crate = "rocket::serde")]
 pub struct NewPost {
