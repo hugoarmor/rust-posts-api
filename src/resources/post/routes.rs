@@ -7,7 +7,7 @@ use crate::db::models::post::*;
 use crate::db::schema;
 use crate::error::ApiError;
 
-#[get("/posts")]
+#[get("/")]
 pub fn get_posts(app: &AppState) -> Result<Json<Vec<Post>>, ApiError> {
     use self::schema::posts::dsl::*;
 
@@ -35,7 +35,7 @@ pub fn get_posts(app: &AppState) -> Result<Json<Vec<Post>>, ApiError> {
     Ok(Json::from(results))
 }
 
-#[get("/posts/<post_id>")]
+#[get("/<post_id>")]
 pub fn get_post(app: &AppState, post_id: i32) -> Result<Json<Post>, ApiError> {
     use self::schema::posts::dsl::*;
 
@@ -50,7 +50,7 @@ pub fn get_post(app: &AppState, post_id: i32) -> Result<Json<Post>, ApiError> {
     Ok(Json::from(result))
 }
 
-#[post("/posts", data = "<new_post>")]
+#[post("/", data = "<new_post>")]
 pub fn create_post(app: &AppState, new_post: Json<NewPost>) -> Result<Json<Post>, ApiError> {
     use schema::posts;
 
@@ -67,7 +67,7 @@ pub fn create_post(app: &AppState, new_post: Json<NewPost>) -> Result<Json<Post>
     Ok(Json::from(result))
 }
 
-#[put("/posts/<post_id>", data = "<updated_post>")]
+#[put("/<post_id>", data = "<updated_post>")]
 pub fn update_post(
     app: &AppState,
     post_id: i32,
@@ -94,7 +94,7 @@ pub fn update_post(
     Ok(Json::from(result))
 }
 
-#[delete("/posts/<post_id>")]
+#[delete("/<post_id>")]
 pub fn delete_post(app: &AppState, post_id: i32) -> Result<Json<Post>, ApiError> {
     use schema::posts::dsl::*;
 
