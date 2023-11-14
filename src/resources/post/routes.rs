@@ -10,14 +10,18 @@ use crate::db::schema;
 pub fn get_posts(app: &AppState) -> Result<Json<Vec<Post>>, (Status, String)> {
     use self::schema::posts::dsl::*;
 
-    let cached_value = app.with_cache(|connection| {
-        let result: Result<String, _> = redis::cmd("GET").arg("posts").query(connection);
-
-        result
-    });
+    let cached_value = app.redis.get("posts");
 
     if let Ok(value) = cached_value {
-        let result: Vec<Post> = serde_json::from_str(&value).unwrap();
+        let result: Vec<Post> = serde_json::from_str(&value).map_err(|err| {
+            (
+                Status::InternalServerError,
+                format!(
+                    "Could not serialize cached response. Error: {}",
+                    err.to_string()
+                ),
+            )
+        })?;
 
         return Ok(Json::from(result));
     }
@@ -30,15 +34,21 @@ pub fn get_posts(app: &AppState) -> Result<Json<Vec<Post>>, (Status, String)> {
             .map_err(|err| (Status::BadRequest, err.to_string()))
     })?;
 
-    let serialized = serde_json::to_string(&results).unwrap();
-
-    app.with_cache(|connection| {
-        let _: () = redis::cmd("SET")
-            .arg("posts")
-            .arg(serialized)
-            .query(connection)
-            .unwrap();
-    });
+    let serialized = serde_json::to_string(&results).map_err(|err| {
+        (
+            Status::InternalServerError,
+            format!(
+                "Could not serialize cached response. Error: {}",
+                err.to_string()
+            ),
+        )
+    })?;
+    app.redis.set("posts", &serialized).map_err(|err| {
+        (
+            Status::InternalServerError,
+            format!("Could not cache response. Error {}", err.to_string()),
+        )
+    })?;
 
     Ok(Json::from(results))
 }
@@ -73,9 +83,12 @@ pub fn create_post(
             .map_err(|err| (Status::BadRequest, err.to_string()))
     })?;
 
-    app.with_cache(|connection| {
-        let _: () = redis::cmd("DEL").arg("posts").query(connection).unwrap();
-    });
+    app.redis.delete("posts").map_err(|err| {
+        (
+            Status::InternalServerError,
+            format!("Could not clear cache. Error {}", err.to_string()),
+        )
+    })?;
 
     Ok(Json::from(result))
 }
@@ -102,9 +115,12 @@ pub fn update_post(
             .map_err(|err| (Status::BadRequest, err.to_string()))
     })?;
 
-    app.with_cache(|connection| {
-        let _: () = redis::cmd("DEL").arg("posts").query(connection).unwrap();
-    });
+    app.redis.delete("posts").map_err(|err| {
+        (
+            Status::InternalServerError,
+            format!("Could not clear cache. Error {}", err.to_string()),
+        )
+    })?;
 
     Ok(Json::from(result))
 }
@@ -126,9 +142,12 @@ pub fn delete_post(app: &AppState, post_id: i32) -> Result<Json<Post>, (Status, 
             .map_err(|err| (Status::BadRequest, err.to_string()))
     })?;
 
-    app.with_cache(|connection| {
-        let _: () = redis::cmd("DEL").arg("posts").query(connection).unwrap();
-    });
+    app.redis.delete("posts").map_err(|err| {
+        (
+            Status::InternalServerError,
+            format!("Could not clear cache. Error {}", err.to_string()),
+        )
+    })?;
 
     Ok(Json::from(result))
 }
