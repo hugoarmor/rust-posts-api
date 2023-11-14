@@ -2,6 +2,7 @@ use diesel::prelude::*;
 use rocket::serde::json::Json;
 
 use crate::context::AppState;
+use crate::db::models::author::Author;
 use crate::db::models::post::*;
 use crate::db::schema;
 use crate::error::ApiError;
@@ -105,6 +106,29 @@ pub fn delete_post(app: &AppState, post_id: i32) -> Result<Json<Post>, ApiError>
             .map_err(ApiError::from)?;
 
         diesel::delete(posts.filter(id.eq(post_id)))
+            .returning(Post::as_returning())
+            .get_result(connection)
+            .map_err(ApiError::from)
+    })?;
+
+    app.redis.delete("posts").map_err(ApiError::from)?;
+
+    Ok(Json::from(result))
+}
+
+#[post("/posts/<post_id>/publish", data = "<publish_body>")]
+pub fn publish_post(app: &AppState, post_id: i32, publish_body: Json<PublishPostBody>) -> Result<Json<Post>, ApiError> {
+    use schema::posts::dsl::{id as posts_id, *};
+    use schema::authors::dsl::*;
+
+    let result = app.db.with_connection(|connection| {
+        let selected_author = authors.filter(token.eq(publish_body.author_token.clone()))
+            .select(Author::as_select())
+            .first::<Author>(connection)
+            .map_err(ApiError::from)?;
+
+        diesel::update(posts.filter(posts_id.eq(post_id)))
+            .set((published_at.eq(diesel::dsl::now), author_id.eq(selected_author.id)))
             .returning(Post::as_returning())
             .get_result(connection)
             .map_err(ApiError::from)

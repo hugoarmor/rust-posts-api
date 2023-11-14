@@ -7,6 +7,7 @@ pub mod db {
     pub mod schema;
     pub mod models {
         pub mod post;
+        pub mod author;
     }
 }
 pub mod resources {
@@ -28,6 +29,6 @@ fn rocket() -> _ {
         .manage(AppContext::setup().expect("Could not setup the application context"))
         .mount(
             "/",
-            routes![get_posts, create_post, delete_post, update_post, get_post],
+            routes![get_posts, create_post, delete_post, update_post, get_post, publish_post],
         )
 }
