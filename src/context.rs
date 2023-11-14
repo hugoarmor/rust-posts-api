@@ -1,14 +1,18 @@
 use anyhow::Result;
 use diesel::{Connection, PgConnection};
 use dotenvy::dotenv;
+use redis::Connection as RedisConnection;
 use rocket::State;
 use std::{
     env,
     sync::{Arc, Mutex},
 };
 
+use crate::services::redis::get_redis_conenction;
+
 pub struct AppContext {
     pub db: Arc<Mutex<PgConnection>>,
+    pub redis: Arc<Mutex<RedisConnection>>,
 }
 pub type AppState = State<AppContext>;
 
@@ -24,8 +28,11 @@ impl AppContext {
             )
         })?;
 
+        let redis_conn = get_redis_conenction()?;
+
         Ok(Self {
             db: Arc::new(Mutex::new(conn)),
+            redis: Arc::new(Mutex::new(redis_conn)),
         })
     }
 
@@ -35,5 +42,14 @@ impl AppContext {
             Err(poisoned) => poisoned.into_inner(),
         };
         callback(connection)
+    }
+
+    pub fn with_cache<T, Callback: FnOnce(&mut redis::Connection) -> T>(&self, callback: Callback) -> T {
+        let conenction = &mut *match self.redis.lock() {
+            Ok(client) => client,
+            Err(poisoned) => poisoned.into_inner(),
+        };
+
+        callback(conenction)
     }
 }
