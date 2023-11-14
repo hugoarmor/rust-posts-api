@@ -14,7 +14,7 @@ pub mod resources {
         pub mod routes;
     }
 }
-
+pub mod error;
 pub mod services {
     pub mod postgres;
     pub mod redis;
