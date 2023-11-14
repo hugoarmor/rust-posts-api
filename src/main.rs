@@ -16,6 +16,7 @@ pub mod resources {
 }
 
 pub mod services {
+    pub mod postgres;
     pub mod redis;
 }
 

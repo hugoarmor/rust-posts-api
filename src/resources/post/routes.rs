@@ -26,7 +26,7 @@ pub fn get_posts(app: &AppState) -> Result<Json<Vec<Post>>, (Status, String)> {
         return Ok(Json::from(result));
     }
 
-    let results = app.with_db(|connection| {
+    let results = app.db.with_connection(|connection| {
         posts
             .limit(5)
             .select(Post::as_select())
@@ -57,7 +57,7 @@ pub fn get_posts(app: &AppState) -> Result<Json<Vec<Post>>, (Status, String)> {
 pub fn get_post(app: &AppState, post_id: i32) -> Result<Json<Post>, (Status, String)> {
     use self::schema::posts::dsl::*;
 
-    let result = app.with_db(|connection| {
+    let result = app.db.with_connection(|connection| {
         posts
             .filter(id.eq(post_id))
             .select(Post::as_select())
@@ -75,7 +75,7 @@ pub fn create_post(
 ) -> Result<Json<Post>, (Status, String)> {
     use schema::posts;
 
-    let result = app.with_db(|connection| {
+    let result = app.db.with_connection(|connection| {
         diesel::insert_into(posts::table)
             .values(new_post.into_inner())
             .returning(Post::as_returning())
@@ -101,7 +101,7 @@ pub fn update_post(
 ) -> Result<Json<Post>, (Status, String)> {
     use schema::posts::dsl::*;
 
-    let result = app.with_db(|connection| {
+    let result = app.db.with_connection(|connection| {
         posts
             .filter(id.eq(post_id))
             .select(Post::as_select())
@@ -129,7 +129,7 @@ pub fn update_post(
 pub fn delete_post(app: &AppState, post_id: i32) -> Result<Json<Post>, (Status, String)> {
     use schema::posts::dsl::*;
 
-    let result = app.with_db(|connection| {
+    let result = app.db.with_connection(|connection| {
         posts
             .filter(id.eq(post_id))
             .select(Post::as_select())
