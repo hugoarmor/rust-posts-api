@@ -10,6 +10,18 @@ use crate::db::schema;
 pub fn get_posts(app: &AppState) -> Result<Json<Vec<Post>>, (Status, String)> {
     use self::schema::posts::dsl::*;
 
+    let cached_value = app.with_cache(|connection| {
+        let result: Result<String, _> = redis::cmd("GET").arg("posts").query(connection);
+
+        result
+    });
+
+    if let Ok(value) = cached_value {
+        let result: Vec<Post> = serde_json::from_str(&value).unwrap();
+
+        return Ok(Json::from(result));
+    }
+
     let results = app.with_db(|connection| {
         posts
             .limit(5)
@@ -17,6 +29,16 @@ pub fn get_posts(app: &AppState) -> Result<Json<Vec<Post>>, (Status, String)> {
             .load(connection)
             .map_err(|err| (Status::BadRequest, err.to_string()))
     })?;
+
+    let serialized = serde_json::to_string(&results).unwrap();
+
+    app.with_cache(|connection| {
+        let _: () = redis::cmd("SET")
+            .arg("posts")
+            .arg(serialized)
+            .query(connection)
+            .unwrap();
+    });
 
     Ok(Json::from(results))
 }
@@ -51,6 +73,10 @@ pub fn create_post(
             .map_err(|err| (Status::BadRequest, err.to_string()))
     })?;
 
+    app.with_cache(|connection| {
+        let _: () = redis::cmd("DEL").arg("posts").query(connection).unwrap();
+    });
+
     Ok(Json::from(result))
 }
 
@@ -76,6 +102,10 @@ pub fn update_post(
             .map_err(|err| (Status::BadRequest, err.to_string()))
     })?;
 
+    app.with_cache(|connection| {
+        let _: () = redis::cmd("DEL").arg("posts").query(connection).unwrap();
+    });
+
     Ok(Json::from(result))
 }
 
@@ -95,6 +125,10 @@ pub fn delete_post(app: &AppState, post_id: i32) -> Result<Json<Post>, (Status, 
             .get_result(connection)
             .map_err(|err| (Status::BadRequest, err.to_string()))
     })?;
+
+    app.with_cache(|connection| {
+        let _: () = redis::cmd("DEL").arg("posts").query(connection).unwrap();
+    });
 
     Ok(Json::from(result))
 }

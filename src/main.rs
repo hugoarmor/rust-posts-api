@@ -15,6 +15,10 @@ pub mod resources {
     }
 }
 
+pub mod services {
+    pub mod redis;
+}
+
 use resources::post::routes::*;
 
 #[launch]
