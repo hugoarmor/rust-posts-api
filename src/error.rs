@@ -11,7 +11,7 @@ impl ApiError {
 
 impl<E: std::error::Error> From<E> for ApiError {
     fn from(err: E) -> Self {
-        Self(Status::InternalServerError, err.to_string())
+        Self(Status::UnprocessableEntity, err.to_string())
     }
 }
 
