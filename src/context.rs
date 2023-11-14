@@ -1,13 +1,12 @@
 use anyhow::Result;
 use dotenvy::dotenv;
 use rocket::State;
-use std::sync::Arc;
 
 use crate::services::{postgres::PostgresService, redis::RedisService};
 
 pub struct AppContext {
     pub db: PostgresService,
-    pub redis: Arc<RedisService>,
+    pub redis: RedisService,
 }
 pub type AppState = State<AppContext>;
 
@@ -17,7 +16,7 @@ impl AppContext {
 
         Ok(Self {
             db: PostgresService::connect()?,
-            redis: Arc::new(RedisService::connect()?),
+            redis: RedisService::connect()?,
         })
     }
 }
