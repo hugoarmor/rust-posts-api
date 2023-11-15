@@ -1,5 +1,8 @@
 #[macro_use]
 extern crate rocket;
+
+extern crate openssl;
+
 use context::AppContext;
 
 pub mod context;
@@ -15,6 +18,7 @@ pub mod resources;
 pub mod services {
     pub mod postgres;
     pub mod redis;
+    pub mod crypto;
 }
 
 #[launch]
