@@ -13,3 +13,18 @@ pub struct Author {
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
+
+#[derive(Insertable, Deserialize, Debug, AsChangeset)]
+#[diesel(table_name = crate::db::schema::authors)]
+pub struct NewAuthorRequestBody {
+    pub email: String,
+    pub name: String,
+}
+
+#[derive(AsChangeset, Insertable)]
+#[diesel(table_name = crate::db::schema::authors)]
+pub struct NewAuthor {
+    pub email: String,
+    pub name: String,
+    pub token: String,
+}

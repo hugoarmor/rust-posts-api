@@ -4,6 +4,10 @@ mod post {
     pub mod routes;
 }
 
+mod author {
+    pub mod routes;
+}
+
 pub fn setup(app: Rocket<Build>) -> Rocket<Build> {
     app.mount(
         "/posts",
@@ -14,5 +18,8 @@ pub fn setup(app: Rocket<Build>) -> Rocket<Build> {
             post::routes::get_posts,
             post::routes::update_post,
         ],
-    )
+    ).mount("/authors", routes![
+        author::routes::get_authors,
+        author::routes::create_author,
+    ])
 }
