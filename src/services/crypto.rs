@@ -16,6 +16,16 @@ pub struct Encrypted {
     data: String,
 }
 
+impl Into<Encrypted> for String {
+    fn into(self) -> Encrypted {
+        Encrypted {
+            iv: env::var("ENCRYPTION_DETERMINISTIC_KEY")
+                .expect("Key not found in environment"),
+            data: self,
+        }
+    }
+}
+
 impl CryptoService {
 
     pub fn new() -> Self {
@@ -26,7 +36,7 @@ impl CryptoService {
         }
 
         let encryption_deterministic_key = env::var("ENCRYPTION_DETERMINISTIC_KEY")
-            .expect("Key not found in environment");
+        .expect("Key not found in environment");
 
         Self {
             encryption_primary_key,
