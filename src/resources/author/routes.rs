@@ -38,7 +38,7 @@ pub fn create_author(app: &AppState, body: Json<NewAuthorRequestBody>) -> Result
     use schema::authors;
 
     let new_token = app.crypto.generate_random_token();
-    let encrypted_token = app.crypto.encrypt(&new_token.as_bytes());
+    let encrypted_token = app.crypto.encrypt(&new_token.as_bytes(), true);
 
     let new_author = NewAuthor {
         name: body.name.clone(),
