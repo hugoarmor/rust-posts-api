@@ -11,6 +11,7 @@ pub struct Post {
     pub title: String,
     pub body: String,
     pub published_at: Option<NaiveDateTime>,
+    pub author_id: Option<i32>,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
