@@ -117,7 +117,7 @@ pub fn delete_post(app: &AppState, post_id: i32) -> Result<Json<Post>, ApiError>
     Ok(Json::from(result))
 }
 
-#[post("/posts/<post_id>/publish", data = "<publish_body>")]
+#[post("/<post_id>/publish", data = "<publish_body>")]
 pub fn publish_post(
     app: &AppState,
     auth: AuthMiddleware,
@@ -126,6 +126,8 @@ pub fn publish_post(
 ) -> Result<Json<Post>, ApiError> {
     use schema::authors::dsl::*;
     use schema::posts::dsl::{id as posts_id, *};
+
+    println!("TOKEN {}", auth.token);
 
     let result = app.db.with_connection(|connection| {
         let selected_author = authors
