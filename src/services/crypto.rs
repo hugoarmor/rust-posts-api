@@ -11,26 +11,44 @@ pub struct CryptoService {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Encrypted {
-    iv: String,
-    data: String,
+pub enum Encrypted {
+    Deterministic { iv: String, data: String },
+    NonDeterministic { iv: String, data: String },
+}
+
+impl Encrypted {
+    pub fn get_iv(&self) -> &String {
+        match self {
+            Encrypted::Deterministic { iv, .. } => iv,
+            Encrypted::NonDeterministic { iv, .. } => iv,
+        }
+    }
+
+    pub fn get_data(&self) -> &String {
+        match self {
+            Encrypted::Deterministic { data, .. } => data,
+            Encrypted::NonDeterministic { data, .. } => data,
+        }
+    }
 }
 
 impl CryptoService {
-
     pub fn new() -> Self {
-        let encryption_primary_key = env::var("ENCRYPTION_PRIMARY_KEY")
-            .expect("Key not found in environment");
+        let encryption_primary_key =
+            env::var("ENCRYPTION_PRIMARY_KEY").expect("Key not found in environment");
         if encryption_primary_key.len() != 32 {
-            panic!("Key must be 32 bytes for AES-256, got {}", encryption_primary_key.len());
+            panic!(
+                "Key must be 32 bytes for AES-256, got {}",
+                encryption_primary_key.len()
+            );
         }
 
-        let encryption_deterministic_key = env::var("ENCRYPTION_DETERMINISTIC_KEY")
-            .expect("Key not found in environment");
+        let encryption_deterministic_key =
+            env::var("ENCRYPTION_DETERMINISTIC_KEY").expect("Key not found in environment");
 
         Self {
             encryption_primary_key,
-            encryption_deterministic_key
+            encryption_deterministic_key,
         }
     }
 
@@ -42,7 +60,12 @@ impl CryptoService {
             false => self.generate_random_iv(),
         };
 
-        let mut crypter = match Crypter::new(cipher, Mode::Encrypt, &self.encryption_primary_key.as_bytes(), Some(&iv)) {
+        let mut crypter = match Crypter::new(
+            cipher,
+            Mode::Encrypt,
+            &self.encryption_primary_key.as_bytes(),
+            Some(&iv),
+        ) {
             Ok(c) => c,
             Err(e) => panic!("Failed to create Crypter: {}", e),
         };
@@ -57,19 +80,28 @@ impl CryptoService {
 
         encrypted.truncate(count + rest);
 
-        Encrypted {
-            iv: base64::encode_block(&iv.to_vec()),
-            data: base64::encode_block(&encrypted),
+        let iv = base64::encode_block(&iv.to_vec());
+        let data = base64::encode_block(&encrypted);
+
+        match deterministic {
+            true => Encrypted::Deterministic { iv, data },
+            false => Encrypted::NonDeterministic { iv, data },
         }
     }
 
     pub fn decrypt(&self, encrypted: &Encrypted) -> Vec<u8> {
         let cipher = Cipher::aes_256_cbc();
 
-        let iv = base64::decode_block(&encrypted.iv).expect("Failed to decode IV");
-        let data = base64::decode_block(&encrypted.data).expect("Failed to decode data");
+        let iv = base64::decode_block(encrypted.get_iv()).expect("Failed to decode IV");
+        let data = base64::decode_block(encrypted.get_data()).expect("Failed to decode data");
 
-        let mut crypter = Crypter::new(cipher, Mode::Decrypt, &self.encryption_primary_key.as_bytes(), Some(&iv)).unwrap();
+        let mut crypter = Crypter::new(
+            cipher,
+            Mode::Decrypt,
+            &self.encryption_primary_key.as_bytes(),
+            Some(&iv),
+        )
+        .unwrap();
 
         let mut decrypted = vec![0; data.len() + cipher.block_size()];
 
