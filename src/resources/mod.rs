@@ -17,9 +17,11 @@ pub fn setup(app: Rocket<Build>) -> Rocket<Build> {
             post::routes::get_post,
             post::routes::get_posts,
             post::routes::update_post,
+            post::routes::publish_post,
         ],
-    ).mount("/authors", routes![
-        author::routes::get_authors,
-        author::routes::create_author,
-    ])
+    )
+    .mount(
+        "/authors",
+        routes![author::routes::get_authors, author::routes::create_author,],
+    )
 }
