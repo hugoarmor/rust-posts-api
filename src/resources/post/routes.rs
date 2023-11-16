@@ -6,6 +6,7 @@ use crate::db::models::author::Author;
 use crate::db::models::post::*;
 use crate::db::schema;
 use crate::error::ApiError;
+use crate::middlewares::auth::AuthMiddleware;
 
 #[get("/")]
 pub fn get_posts(app: &AppState) -> Result<Json<Vec<Post>>, ApiError> {
@@ -117,18 +118,27 @@ pub fn delete_post(app: &AppState, post_id: i32) -> Result<Json<Post>, ApiError>
 }
 
 #[post("/posts/<post_id>/publish", data = "<publish_body>")]
-pub fn publish_post(app: &AppState, post_id: i32, publish_body: Json<PublishPostBody>) -> Result<Json<Post>, ApiError> {
-    use schema::posts::dsl::{id as posts_id, *};
+pub fn publish_post(
+    app: &AppState,
+    auth: AuthMiddleware,
+    post_id: i32,
+    publish_body: Json<PublishPostBody>,
+) -> Result<Json<Post>, ApiError> {
     use schema::authors::dsl::*;
+    use schema::posts::dsl::{id as posts_id, *};
 
     let result = app.db.with_connection(|connection| {
-        let selected_author = authors.filter(token.eq(publish_body.author_token.clone()))
+        let selected_author = authors
+            .filter(token.eq(publish_body.author_token.clone()))
             .select(Author::as_select())
             .first::<Author>(connection)
             .map_err(ApiError::from)?;
 
         diesel::update(posts.filter(posts_id.eq(post_id)))
-            .set((published_at.eq(diesel::dsl::now), author_id.eq(selected_author.id)))
+            .set((
+                published_at.eq(diesel::dsl::now),
+                author_id.eq(selected_author.id),
+            ))
             .returning(Post::as_returning())
             .get_result(connection)
             .map_err(ApiError::from)

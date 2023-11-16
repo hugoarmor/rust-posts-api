@@ -9,16 +9,19 @@ pub mod context;
 pub mod db {
     pub mod schema;
     pub mod models {
-        pub mod post;
         pub mod author;
+        pub mod post;
     }
 }
 pub mod error;
 pub mod resources;
 pub mod services {
+    pub mod crypto;
     pub mod postgres;
     pub mod redis;
-    pub mod crypto;
+}
+pub mod middlewares {
+    pub mod auth;
 }
 
 #[launch]
