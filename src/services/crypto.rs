@@ -11,8 +11,11 @@ pub struct CryptoService {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(tag = "t")]
 pub enum Encrypted {
+    #[serde(rename = "d")]
     Deterministic { iv: String, data: String },
+    #[serde(rename = "n")]
     NonDeterministic { iv: String, data: String },
 }
 
