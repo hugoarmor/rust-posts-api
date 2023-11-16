@@ -127,8 +127,6 @@ pub fn publish_post(
     use schema::authors::dsl::*;
     use schema::posts::dsl::{id as posts_id, *};
 
-    println!("TOKEN {}", auth.token);
-
     let result = app.db.with_connection(|connection| {
         let selected_author = authors
             .filter(token.eq(publish_body.author_token.clone()))
