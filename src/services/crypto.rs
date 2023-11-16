@@ -35,12 +35,17 @@ impl Encrypted {
     }
 }
 
-impl Into<Encrypted> for String {
-    fn into(self) -> Encrypted {
-        Encrypted {
-            iv: env::var("ENCRYPTION_DETERMINISTIC_KEY")
-                .expect("Key not found in environment"),
-            data: self,
+pub trait IntoEncrypted {
+    fn into_encrypted(self, deterministic: bool) -> Encrypted;
+}
+
+impl IntoEncrypted for String {
+    fn into_encrypted(self, deterministic: bool) -> Encrypted {
+        let crypto_service = CryptoService::new();
+
+        match deterministic {
+            true => crypto_service.encrypt(self.as_bytes(), true),
+            false => crypto_service.encrypt(self.as_bytes(), false),
         }
     }
 }

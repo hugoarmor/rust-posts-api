@@ -6,6 +6,8 @@ use rocket::{
     Request,
 };
 
+use crate::services::crypto::IntoEncrypted;
+
 use crate::{context::AppState, db::models::author::Author};
 
 pub struct AuthMiddleware {
@@ -30,11 +32,12 @@ impl<'r> FromRequest<'r> for AuthMiddleware {
             return Outcome::Error((Status::Unauthorized, "Unauthorized".to_string()));
         }
 
-        let req_token = req_token.unwrap();
+        let req_token = req_token.unwrap().into_encrypted(true);
+        let req_token_serialized = serde_json::to_string(&req_token).unwrap();
 
         let author: Option<Author> = ctx.db.with_connection(|connection| {
             authors
-                .filter(token.eq(req_token))
+                .filter(token.eq(req_token_serialized))
                 .select(Author::as_select())
                 .first::<Author>(connection)
                 .ok()
