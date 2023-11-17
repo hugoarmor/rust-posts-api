@@ -1,3 +1,4 @@
+use clap::Args;
 use diesel::*;
 
 use chrono::NaiveDateTime;
@@ -18,7 +19,7 @@ pub struct Post {
     pub updated_at: NaiveDateTime,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Args)]
 #[cfg_attr(feature = "diesel", derive(Insertable, AsChangeset))]
 #[cfg_attr(feature = "diesel", diesel(table_name = crate::schema::posts))]
 pub struct NewPost {
