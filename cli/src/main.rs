@@ -1,6 +1,7 @@
 extern crate clap;
 
 use clap::*;
+use serde::{Serialize, Deserialize};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -13,6 +14,13 @@ struct Cli {
 enum PostCommand {
     Get { id: u32 },
     GetAll,
+    Create(CreatePostArgs),
+}
+
+#[derive(Serialize, Deserialize, Debug, Args)]
+struct CreatePostArgs {
+    title: String,
+    body: String,
 }
 
 #[derive(Subcommand, Debug)]
@@ -38,6 +46,19 @@ async fn handle_post_command(command: &PostCommand) -> Result<(), anyhow::Error>
                 .text()
                 .await?;
             println!("Response: {}", response);
+        }
+        PostCommand::Create(args) => {
+            println!("Get all posts");
+            let client = reqwest::Client::new();
+
+            let formatted_body = serde_json::to_string(&CreatePostArgs { title: (args.title.to_string()), body: (args.body.to_string()) })?;
+
+            client.post("http://localhost:8000/posts")
+                .body(formatted_body)
+                .send()
+                .await?;
+
+            println!("Post created");
         }
     }
 
