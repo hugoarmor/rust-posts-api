@@ -4,28 +4,53 @@ use clap::*;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
-enum Args {
-    #[command()]
-    Publish {
-        #[arg(short, long)]
-        name: Option<String>,
+struct Cli {
+    #[command(subcommand)]
+    command: Command,
+}
 
-        #[arg(short, long, default_value_t = 1)]
-        count: u8,
-    },
+#[derive(Subcommand, Debug)]
+enum PostCommand {
+    Get { id: u32 },
+    GetAll,
+}
+
+#[derive(Subcommand, Debug)]
+enum Command {
+    #[command(subcommand)]
+    Post(PostCommand),
+}
+
+async fn handle_post_command(command: &PostCommand) -> Result<(), anyhow::Error> {
+    match command {
+        PostCommand::Get { id } => {
+            println!("Get post with id {}", id);
+            let response = reqwest::get(&format!("http://localhost:8000/posts/{}", id))
+                .await?
+                .text()
+                .await?;
+            println!("Response: {}", response);
+        }
+        PostCommand::GetAll => {
+            println!("Get all posts");
+            let response = reqwest::get("http://localhost:8000/posts")
+                .await?
+                .text()
+                .await?;
+            println!("Response: {}", response);
+        }
+    }
+
+    Ok(())
 }
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
-    let args = Args::parse();
+    let cli = Cli::parse();
 
-    println!("{:?}", args);
-
-    let response = reqwest::get("http://localhost:8000/posts")
-        .await?
-        .text()
-        .await?;
-    println!("response: {}", response);
+    match cli.command {
+        Command::Post(command) => handle_post_command(&command).await?,
+    }
 
     Ok(())
 }
