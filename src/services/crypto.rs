@@ -53,16 +53,23 @@ impl IntoEncrypted for String {
 impl CryptoService {
     pub fn new() -> Self {
         let encryption_primary_key =
-            env::var("ENCRYPTION_PRIMARY_KEY").expect("Key not found in environment");
+            env::var("ENCRYPTION_PRIMARY_KEY").expect("PRIMARY_KEY not found in environment");
         if encryption_primary_key.len() != 32 {
             panic!(
-                "Key must be 32 bytes for AES-256, got {}",
+                "PRIMARY_KEY must be 32 bytes for AES-256, got {}",
                 encryption_primary_key.len()
             );
         }
 
         let encryption_deterministic_key =
-            env::var("ENCRYPTION_DETERMINISTIC_KEY").expect("Key not found in environment");
+            env::var("ENCRYPTION_DETERMINISTIC_KEY").expect("DETERMINISTIC_KEY not found in environment");
+
+        if encryption_deterministic_key.len() != 16 {
+            panic!(
+                "DETERMINISTIC_KEY must be 16 bytes for AES-128, got {}",
+                encryption_deterministic_key.len()
+            );
+        }
 
         Self {
             encryption_primary_key,
