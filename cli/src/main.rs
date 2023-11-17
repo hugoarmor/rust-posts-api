@@ -5,30 +5,12 @@ use std::{
     io::{Read, Write},
 };
 
-use clap::*;
+use clap::Parser;
 use models::post::NewPost;
 
-#[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
-struct Cli {
-    #[command(subcommand)]
-    command: Command,
-}
+pub mod commands;
 
-#[derive(Subcommand, Debug)]
-enum PostCommand {
-    Get { id: u32 },
-    GetAll,
-    Create(NewPost),
-}
-
-#[derive(Subcommand, Debug)]
-enum Command {
-    #[command(subcommand)]
-    Post(PostCommand),
-    #[command()]
-    Config { token: String },
-}
+use commands::{Command, Cli, PostCommand};
 
 async fn handle_post_command(command: &PostCommand) -> Result<(), anyhow::Error> {
     match command {
