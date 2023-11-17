@@ -1,40 +1,41 @@
 use models::post::NewPost;
 
-use crate::{commands::PostCommand, services::auth};
+use crate::{commands::PostCommand, config::AppConfig};
 
-pub async fn handle_post_command(command: &PostCommand) -> Result<(), anyhow::Error> {
+pub async fn handle_post_command(app_config: AppConfig, command: &PostCommand) -> Result<(), anyhow::Error> {
     match command {
-        PostCommand::GetCommand { id } => {
+        PostCommand::Get { id } => {
+            let request_url = &format!("{}/posts/{}", app_config.api_url, id);
             let response: models::post::Post = serde_json::from_str(
-                &reqwest::get(&format!("http://localhost:8000/posts/{}", id))
+                &reqwest::get(request_url)
                     .await?
                     .text()
                     .await?,
             )?;
             println!("Response: {:#?}", response);
         }
-        PostCommand::GetAllCommand => {
+        PostCommand::GetAll => {
+            let request_url = format!("{}/posts", app_config.api_url);
             let response: Vec<models::post::Post> = serde_json::from_str(
-                &reqwest::get("http://localhost:8000/posts")
+                &reqwest::get(request_url)
                     .await?
                     .text()
                     .await?,
             )?;
             println!("Response: {:#?}", response);
         }
-        PostCommand::CreateCommand(args) => {
+        PostCommand::Create(args) => {
             let client = reqwest::Client::new();
-
-            let auth_token = auth::get_token()?;
 
             let formatted_body = serde_json::to_string(&NewPost {
                 title: args.title.to_string(),
                 body: args.body.to_string(),
             })?;
 
+            let request_url = format!("{}/posts", app_config.api_url);
             let response = client
-                .post("http://localhost:8000/posts")
-                .header("Authorization", auth_token)
+                .post(request_url)
+                .header("Authorization", app_config.token)
                 .body(formatted_body)
                 .send()
                 .await?;

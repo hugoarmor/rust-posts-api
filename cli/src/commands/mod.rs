@@ -18,15 +18,15 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug)]
 pub enum PostCommand {
-    GetCommand { id: u32 },
-    GetAllCommand,
-    CreateCommand(NewPost),
+    Get { id: u32 },
+    GetAll,
+    Create(NewPost),
 }
 
 #[derive(Subcommand, Debug)]
 pub enum Command {
     #[command(subcommand)]
-    PostCommand(PostCommand),
+    Post(PostCommand),
     #[command()]
-    ConfigCommand { token: String },
+    Config { token: String },
 }
