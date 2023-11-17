@@ -24,3 +24,6 @@ anyhow = "1.0"
 
 # models
 models = { path = "../models" }
+
+# environment variables
+dotenvy = "0.15"
