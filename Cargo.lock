@@ -288,6 +288,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "models",
  "reqwest",
  "serde",
  "serde_json",
@@ -884,6 +885,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "models"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "diesel",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "multer"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1391,9 +1402,9 @@ name = "rust-posts-api"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "chrono",
  "diesel",
  "dotenvy",
+ "models",
  "openssl",
  "redis",
  "rocket",

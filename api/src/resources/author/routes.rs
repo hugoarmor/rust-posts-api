@@ -2,9 +2,9 @@ use diesel::prelude::*;
 use rocket::serde::json::Json;
 
 use crate::context::AppState;
-use crate::db::models::author::*;
-use crate::db::schema;
 use crate::error::ApiError;
+use crate::models::author::*;
+use crate::models::schema;
 
 #[get("/")]
 pub fn get_authors(app: &AppState) -> Result<Json<Vec<Author>>, ApiError> {
@@ -34,7 +34,10 @@ pub fn get_authors(app: &AppState) -> Result<Json<Vec<Author>>, ApiError> {
 }
 
 #[post("/", data = "<body>")]
-pub fn create_author(app: &AppState, body: Json<NewAuthorRequestBody>) -> Result<Json<Author>, ApiError> {
+pub fn create_author(
+    app: &AppState,
+    body: Json<NewAuthorRequestBody>,
+) -> Result<Json<Author>, ApiError> {
     use schema::authors;
 
     let new_token = app.crypto.generate_random_token();

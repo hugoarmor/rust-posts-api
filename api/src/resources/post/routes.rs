@@ -2,11 +2,11 @@ use diesel::prelude::*;
 use rocket::serde::json::Json;
 
 use crate::context::AppState;
-use crate::db::models::author::Author;
-use crate::db::models::post::*;
-use crate::db::schema;
 use crate::error::ApiError;
 use crate::middlewares::auth::AuthMiddleware;
+use crate::models::author::Author;
+use crate::models::post::*;
+use crate::models::schema;
 
 #[get("/")]
 pub fn get_posts(app: &AppState) -> Result<Json<Vec<Post>>, ApiError> {

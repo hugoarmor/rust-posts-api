@@ -33,19 +33,23 @@ async fn handle_post_command(command: &PostCommand) -> Result<(), anyhow::Error>
     match command {
         PostCommand::Get { id } => {
             println!("Get post with id {}", id);
-            let response = reqwest::get(&format!("http://localhost:8000/posts/{}", id))
-                .await?
-                .text()
-                .await?;
-            println!("Response: {}", response);
+            let response: models::post::Post = serde_json::from_str(
+                &reqwest::get(&format!("http://localhost:8000/posts/{}", id))
+                    .await?
+                    .text()
+                    .await?,
+            )?;
+            println!("Response: {:#?}", response);
         }
         PostCommand::GetAll => {
             println!("Get all posts");
-            let response = reqwest::get("http://localhost:8000/posts")
-                .await?
-                .text()
-                .await?;
-            println!("Response: {}", response);
+            let response: Vec<models::post::Post> = serde_json::from_str(
+                &reqwest::get("http://localhost:8000/posts")
+                    .await?
+                    .text()
+                    .await?,
+            )?;
+            println!("Response: {:#?}", response);
         }
         PostCommand::Create(args) => {
             println!("Get all posts");

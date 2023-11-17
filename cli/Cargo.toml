@@ -21,3 +21,6 @@ serde_json = "1.0"
 
 # errors
 anyhow = "1.0"
+
+# models
+models = { path = "../models" }

@@ -1,9 +1,13 @@
 [package]
-name = "rust-posts-api"
+name = "models"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+diesel = []
+
 
 [dependencies]
 # serialization
@@ -13,20 +17,5 @@ serde_json = "1.0"
 # database
 diesel = { version = "2.1", features = ["postgres", "chrono", "r2d2"] }
 
-# environment variables
-dotenvy = "0.15"
-
-# web framework
-rocket = { version = "=0.5.0-rc.4", features = ["json"] }
-
-# models
-models = { path = "../models", features = ["diesel"] }
-
-# errors
-anyhow = "1.0"
-
-# crypto
-openssl = "0.10"
-
-[dependencies.redis]
-version = "*"
+# dates and timestamps
+chrono = { version = "0.4", features = ["serde"] }
