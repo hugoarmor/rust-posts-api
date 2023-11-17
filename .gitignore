@@ -1,4 +1,4 @@
-/target
+target/
 .env
-/data
+data/
 .vscode

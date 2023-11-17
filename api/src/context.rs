@@ -2,7 +2,7 @@ use anyhow::Result;
 use dotenvy::dotenv;
 use rocket::State;
 
-use crate::services::{postgres::PostgresService, redis::RedisService, crypto::CryptoService};
+use crate::services::{crypto::CryptoService, postgres::PostgresService, redis::RedisService};
 
 pub struct AppContext {
     pub db: PostgresService,
