@@ -1,8 +1,0 @@
-CREATE TABLE posts (
-  id SERIAL PRIMARY KEY,
-  title VARCHAR NOT NULL,
-  body TEXT NOT NULL,
-  published_at TIMESTAMP DEFAULT NULL,
-  created_at TIMESTAMP NOT NULL DEFAULT now(),
-  updated_at TIMESTAMP NOT NULL DEFAULT now()
-)

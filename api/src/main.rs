@@ -3,16 +3,11 @@ extern crate rocket;
 
 extern crate openssl;
 
+pub use models;
+
 use context::AppContext;
 
 pub mod context;
-pub mod db {
-    pub mod schema;
-    pub mod models {
-        pub mod author;
-        pub mod post;
-    }
-}
 pub mod error;
 pub mod resources;
 pub mod services {

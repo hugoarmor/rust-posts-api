@@ -6,9 +6,9 @@ use rocket::{
     Request,
 };
 
-use crate::{services::crypto::IntoEncrypted, context::AppContext};
+use crate::{context::AppContext, services::crypto::IntoEncrypted};
 
-use crate::db::models::author::Author;
+use crate::models::author::Author;
 
 pub struct AuthMiddleware {
     pub author: Author,
@@ -19,7 +19,7 @@ impl<'r> FromRequest<'r> for AuthMiddleware {
     type Error = String;
 
     async fn from_request(request: &'r Request<'_>) -> Outcome<Self, Self::Error> {
-        use crate::db::schema::authors::dsl::*;
+        use crate::models::schema::authors::dsl::*;
 
         let ctx = request.rocket().state::<AppContext>().unwrap();
 
