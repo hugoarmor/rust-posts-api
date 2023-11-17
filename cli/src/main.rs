@@ -1,16 +1,15 @@
 extern crate clap;
 
-use std::{
-    fs::{DirBuilder, File},
-    io::{Read, Write},
-};
-
 use clap::Parser;
 use models::post::NewPost;
 
 pub mod commands;
+pub mod services {
+    pub mod auth;
+}
 
 use commands::{Command, Cli, PostCommand};
+use services::auth;
 
 async fn handle_post_command(command: &PostCommand) -> Result<(), anyhow::Error> {
     match command {
@@ -38,7 +37,7 @@ async fn handle_post_command(command: &PostCommand) -> Result<(), anyhow::Error>
             println!("Get all posts");
             let client = reqwest::Client::new();
 
-            let auth_token = get_token()?;
+            let auth_token = auth::get_token()?;
 
             let formatted_body = serde_json::to_string(&NewPost {
                 title: args.title.to_string(),
@@ -69,19 +68,9 @@ async fn handle_post_command(command: &PostCommand) -> Result<(), anyhow::Error>
 }
 
 fn handle_config_command(token: String) -> Result<(), anyhow::Error> {
-    DirBuilder::new().recursive(true).create("config")?;
-    let mut file = File::create("config/token.txt")?;
-    file.write_all(token.as_bytes())?;
+    auth::store_token(token)?;
 
     Ok(())
-}
-
-fn get_token() -> Result<String, anyhow::Error> {
-    let mut file = File::open("config/token.txt").expect("You don't have a token configured.");
-    let mut token = String::new();
-    file.read_to_string(&mut token)?;
-
-    Ok(token)
 }
 
 #[tokio::main]
