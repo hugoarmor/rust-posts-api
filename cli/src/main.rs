@@ -14,7 +14,7 @@ use commands::{Command, Cli, PostCommand};
 
 async fn handle_post_command(command: &PostCommand) -> Result<(), anyhow::Error> {
     match command {
-        PostCommand::Get { id } => {
+        PostCommand::GetCommand { id } => {
             println!("Get post with id {}", id);
             let response: models::post::Post = serde_json::from_str(
                 &reqwest::get(&format!("http://localhost:8000/posts/{}", id))
@@ -24,7 +24,7 @@ async fn handle_post_command(command: &PostCommand) -> Result<(), anyhow::Error>
             )?;
             println!("Response: {:#?}", response);
         }
-        PostCommand::GetAll => {
+        PostCommand::GetAllCommand => {
             println!("Get all posts");
             let response: Vec<models::post::Post> = serde_json::from_str(
                 &reqwest::get("http://localhost:8000/posts")
@@ -34,7 +34,7 @@ async fn handle_post_command(command: &PostCommand) -> Result<(), anyhow::Error>
             )?;
             println!("Response: {:#?}", response);
         }
-        PostCommand::Create(args) => {
+        PostCommand::CreateCommand(args) => {
             println!("Get all posts");
             let client = reqwest::Client::new();
 
@@ -89,8 +89,8 @@ async fn main() -> Result<(), anyhow::Error> {
     let cli = Cli::parse();
 
     match cli.command {
-        Command::Post(command) => handle_post_command(&command).await?,
-        Command::Config { token } => handle_config_command(token)?,
+        Command::PostCommand(command) => handle_post_command(&command).await?,
+        Command::ConfigCommand { token } => handle_config_command(token)?,
     }
 
     Ok(())

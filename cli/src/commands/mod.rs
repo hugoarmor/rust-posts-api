@@ -10,15 +10,15 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug)]
 pub enum PostCommand {
-    Get { id: u32 },
-    GetAll,
-    Create(NewPost),
+    GetCommand { id: u32 },
+    GetAllCommand,
+    CreateCommand(NewPost),
 }
 
 #[derive(Subcommand, Debug)]
 pub enum Command {
     #[command(subcommand)]
-    Post(PostCommand),
+    PostCommand(PostCommand),
     #[command()]
-    Config { token: String },
+    ConfigCommand { token: String },
 }
