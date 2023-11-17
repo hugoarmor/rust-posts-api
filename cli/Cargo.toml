@@ -6,4 +6,18 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+# cli parser
 clap = { version = "4.4.8", features = ["derive"] }
+
+# http requests
+reqwest = { version = "0.11", features = ["json"] }
+
+# async runtime (for http requests)
+tokio = { version = "1", features = ["full"] }
+
+# serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# errors
+anyhow = "1.0"

@@ -12,11 +12,20 @@ enum Args {
 
         #[arg(short, long, default_value_t = 1)]
         count: u8,
-    }
+    },
 }
 
-fn main() {
+#[tokio::main]
+async fn main() -> Result<(), anyhow::Error> {
     let args = Args::parse();
 
     println!("{:?}", args);
+
+    let response = reqwest::get("http://localhost:8000/posts")
+        .await?
+        .text()
+        .await?;
+    println!("response: {}", response);
+
+    Ok(())
 }
