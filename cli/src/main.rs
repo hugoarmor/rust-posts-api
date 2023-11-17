@@ -15,13 +15,13 @@ use commands::{
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
-    let app_config = config::AppConfig::setup();
+    let _app_config = config::AppConfig::setup();
 
     let cli = Cli::parse();
 
     match cli.command {
-        Command::Post(command) => handle_post_command(app_config, &command).await?,
-        Command::Config { token } => handle_config_command(token)?,
+        Command::Post(command) => handle_post_command(_app_config, &command).await?,
+        Command::Config { token } => handle_config_command(_app_config, token)?,
     }
 
     Ok(())
