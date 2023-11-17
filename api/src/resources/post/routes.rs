@@ -52,7 +52,7 @@ pub fn get_post(app: &AppState, post_id: i32) -> Result<Json<Post>, ApiError> {
 }
 
 #[post("/", data = "<new_post>")]
-pub fn create_post(app: &AppState, new_post: Json<NewPost>) -> Result<Json<Post>, ApiError> {
+pub fn create_post(app: &AppState, new_post: Json<NewPost>, auth: AuthMiddleware,) -> Result<Json<Post>, ApiError> {
     use schema::posts;
 
     let result = app.db.with_connection(|connection| {
