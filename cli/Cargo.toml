@@ -27,3 +27,6 @@ models = { path = "../models" }
 
 # environment variables
 dotenvy = "0.15"
+
+# standard directory paths
+directories = "5.0"
